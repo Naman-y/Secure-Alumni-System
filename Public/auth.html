@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Authentication</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+
+  <!-- LOGIN -->
+  <div id="loginBox">
+    <h2>Login</h2>
+    <input id="loginEmail" placeholder="Email">
+    <input id="loginPassword" type="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <p>
+      New user?
+      <a href="#" onclick="showRegister()">Register here</a>
+    </p>
+  </div>
+
+  <!-- OTP -->
+  <div id="otpBox" style="display:none;">
+    <h2>OTP Verification</h2>
+    <input id="otp" placeholder="Enter OTP">
+    <button onclick="verifyOtp()">Verify OTP</button>
+  </div>
+
+  <!-- REGISTER -->
+  <div id="registerBox" style="display:none;">
+    <h2>Register</h2>
+    <input id="name" placeholder="Name">
+    <input id="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Password">
+
+    <select id="role">
+      <option value="ALUMNI">Alumni</option>
+      <option value="STAFF">Staff</option>
+      <option value="ADMIN">Admin</option>
+    </select>
+
+    <button onclick="register()">Register</button>
+    <p>
+      Already registered?
+      <a href="#" onclick="showLogin()">Login here</a>
+    </p>
+  </div>
+
+  <p id="msg"></p>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

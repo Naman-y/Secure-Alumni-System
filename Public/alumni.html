@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Alumni Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+  <h2>Alumni Dashboard</h2>
+  <p>View and download your transcript securely</p>
+
+  <button onclick="downloadTranscript()">Download Transcript</button>
+
+  <p id="msg"></p>
+
+  <hr>
+
+  <h4>Base64 Encoded Transcript</h4>
+  <textarea id="base64" rows="8" style="width:100%" readonly></textarea>
+  <button onclick="downloadOriginal()">Download Original Transcript</button>
+
+  <br>
+  <button onclick="logout()">Logout</button>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

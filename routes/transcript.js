@@ -1,3 +1,5 @@
+const Request = require("../models/Request");
+const Document = require("../models/Document");
 const express = require("express");
 const multer = require("multer");
 const fs = require("fs");
@@ -11,7 +13,7 @@ const jwt = require("jsonwebtoken");
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
-// 🔐 AUTH MIDDLEWARE
+// AUTH MIDDLEWARE
 function verifyToken(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader) return res.status(403).json({ message: "No token" });
@@ -24,29 +26,42 @@ function verifyToken(req, res, next) {
   });
 }
 
-// 📤 ADMIN UPLOAD TRANSCRIPT
-router.post("/upload", verifyToken, upload.single("file"), (req, res) => {
+// ADMIN UPLOAD TRANSCRIPT
+router.post("/upload", verifyToken, upload.single("file"), async (req, res) => {
+
   if (req.user.role !== "ADMIN") {
     return res.status(403).json({ message: "Only admin allowed" });
   }
 
+  // Encrypt & sign
   const encrypted = encrypt(req.file.buffer);
   const { hash, signature } = signData(req.file.buffer);
 
-  // store signature for verification
-  signatureStore.signature = signature;
-
-  const filePath = path.join("uploads", Date.now() + ".enc");
+  const filePath = "uploads/" + Date.now() + ".enc";
   fs.writeFileSync(filePath, encrypted);
 
+  // STORE DOCUMENT DETAILS IN DATABASE (THIS IS THE FIX)
+  const doc = new Document({
+    encryptedPath: filePath,
+    hash,
+    signature
+  });
+  await doc.save();
+
+  // Mark request as completed
+  await Request.findOneAndUpdate(
+    { status: "PENDING" },
+    { status: "COMPLETED" }
+  );
+
   res.json({
-    message: "Transcript uploaded securely",
+    message: "Transcript uploaded, encrypted, and request completed",
     hash: hash.toString("hex"),
-    signature: signature.toString("hex"),
+    signature: signature.toString("hex")
   });
 });
 
-// 📥 ALUMNI DOWNLOAD TRANSCRIPT (BASE64)
+// ALUMNI DOWNLOAD TRANSCRIPT (BASE64)
 router.get("/download", verifyToken, (req, res) => {
 
   // Only alumni allowed
@@ -107,25 +122,24 @@ router.get("/download-file", verifyToken, (req, res) => {
 //Add verifier Router
 const { verifySignature } = require("../utils/signature");
 
-router.get("/verify", verifyToken, (req, res) => {
+router.get("/verify", verifyToken, async (req, res) => {
 
-  // Only staff allowed
   if (req.user.role !== "STAFF") {
     return res.status(403).json({ message: "Only staff can verify transcript" });
   }
 
-  const uploadDir = "uploads";
-  const files = fs.readdirSync(uploadDir);
+  // Get latest uploaded document from DB
+  const doc = await Document.findOne().sort({ createdAt: -1 });
 
-  if (files.length === 0) {
-    return res.status(404).json({ message: "No transcript available" });
+  if (!doc) {
+    return res.status(404).json({ message: "No document found" });
   }
 
-  const encryptedData = fs.readFileSync(`${uploadDir}/${files[0]}`);
+  const encryptedData = fs.readFileSync(doc.encryptedPath);
   const decrypted = decrypt(encryptedData);
 
-  // Verify signature
-  const isValid = verifySignature(decrypted, signatureStore.signature);
+  // VERIFY USING SIGNATURE FROM DATABASE
+  const isValid = verifySignature(decrypted, doc.signature);
 
   if (isValid) {
     res.json({ message: "Transcript is AUTHENTIC and NOT TAMPERED" });
@@ -133,6 +147,7 @@ router.get("/verify", verifyToken, (req, res) => {
     res.json({ message: "Transcript has been TAMPERED" });
   }
 });
+
 
 
 module.exports = router;

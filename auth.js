@@ -8,7 +8,7 @@ const router = express.Router();
 const users = [];
 const otps = {};
 
-// 🔹 REGISTER
+//REGISTER
 router.post("/register", async (req, res) => {
   const { name, email, password, role } = req.body;
 
@@ -24,7 +24,7 @@ router.post("/register", async (req, res) => {
   res.json({ message: "User registered successfully" });
 });
 
-// 🔹 LOGIN (STEP 1: PASSWORD)
+// LOGIN (STEP 1: PASSWORD)
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -38,12 +38,12 @@ router.post("/login", async (req, res) => {
   const otp = Math.floor(100000 + Math.random() * 900000);
   otps[email] = otp;
 
-  console.log("OTP (for demo):", otp); // 👈 OTP shown in terminal
+  console.log("OTP (for demo):", otp); // OTP shown in terminal
 
   res.json({ message: "OTP sent to email (check server console)" });
 });
 
-// 🔹 VERIFY OTP (STEP 2: MFA)
+// VERIFY OTP (STEP 2: MFA)
 router.post("/verify-otp", (req, res) => {
   const { email, otp } = req.body;
 
@@ -64,7 +64,7 @@ router.post("/verify-otp", (req, res) => {
   res.json({ message: "Login successful", token });
 });
 
-// 🔹 ROLE-BASED PROTECTED ROUTE
+// ROLE-BASED PROTECTED ROUTE
 router.get("/dashboard", verifyToken, (req, res) => {
   if (req.user.role !== "ADMIN") {
     return res.status(403).json({ message: "Access denied" });
@@ -72,7 +72,7 @@ router.get("/dashboard", verifyToken, (req, res) => {
   res.json({ message: "Welcome Admin Dashboard" });
 });
 
-// 🔹 JWT MIDDLEWARE
+// JWT MIDDLEWARE
 function verifyToken(req, res, next) {
   const authHeader = req.headers["authorization"];
 

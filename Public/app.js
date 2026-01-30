@@ -152,6 +152,49 @@ async function downloadOriginal() {
   a.remove();
 }
 
+/* ---------------- Request Document ---------------- */
+async function requestDocument() {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch("http://localhost:3000/request/create", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + token
+    },
+    body: JSON.stringify({
+      documentType: docType.value,
+      reason: reason.value
+    })
+  });
+
+  const data = await res.json();
+  document.getElementById("requestMsg").innerText = data.message;
+}
+
+/* ---------------- Load Request ---------------- */
+async function loadRequests() {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch("http://localhost:3000/request/all", {
+    headers: {
+      Authorization: "Bearer " + token
+    }
+  });
+
+  const data = await res.json();
+
+  const list = document.getElementById("requests");
+  list.innerHTML = "";
+
+  data.forEach(r => {
+    const li = document.createElement("li");
+    li.innerText = `${r.alumniEmail} requested ${r.documentType} (${r.status})`;
+    list.appendChild(li);
+  });
+}
+
+
 /* ---------------- Verify Transcript ---------------- */
 async function verifyTranscript() {
   const token = localStorage.getItem("token");
